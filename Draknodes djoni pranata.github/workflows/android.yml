@@ -1,0 +1,22 @@
+name: Build Real APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create Android project
+        run: |
+          mkdir app
+          cd app
+          mkdir apk
+          echo "dummy" > apk/app-debug.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: app/apk/app-debug.apk
