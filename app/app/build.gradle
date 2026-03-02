@@ -1,0 +1,18 @@
+plugins { id "com.android.application" }
+
+android {
+  namespace "com.example.market"
+  compileSdk 34
+
+  defaultConfig {
+    applicationId "com.example.market"
+    minSdk 24
+    targetSdk 34
+    versionCode 1
+    versionName "1.0"
+  }
+
+  buildTypes {
+    release { minifyEnabled false }
+  }
+}
