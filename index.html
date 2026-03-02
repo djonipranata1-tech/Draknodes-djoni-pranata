@@ -1,0 +1,40 @@
+<!DOCTYPE html><html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Analyzer</title><style>
+body{
+font-family:Arial;
+background:#111;
+color:#0f0;
+padding:20px;
+}
+button{
+padding:10px;
+margin:5px;
+background:#0f0;
+border:none;
+font-size:16px;
+}
+</style></head><body><h2>Market Analyzer Live</h2><div id="data">Loading...</div><button onclick="load()">Refresh</button>
+
+<button onclick="window.open('https://iuwashtangguh.or.id/indeks-berita/')">
+Berita Trader Tangguh
+</button><script>
+
+async function load(){
+
+let r = await fetch(
+"https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+);
+
+let d = await r.json();
+
+document.getElementById("data").innerHTML=
+"BTC Price: "+d.price;
+
+}
+
+load();
+
+</script></body>
+</html>
