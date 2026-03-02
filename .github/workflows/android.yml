@@ -1,0 +1,102 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create minimal Android app (Gradle)
+        run: |
+          mkdir -p app
+          cd app
+          mkdir -p app/src/main/java/com/example/market
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/values
+          cat > settings.gradle <<'EOF'
+          rootProject.name = "MarketAnalyzer"
+          include(":app")
+          EOF
+          cat > build.gradle <<'EOF'
+          buildscript {
+            repositories { google(); mavenCentral() }
+            dependencies { classpath "com.android.tools.build:gradle:8.2.2" }
+          }
+          allprojects { repositories { google(); mavenCentral() } }
+          EOF
+          cat > gradle.properties <<'EOF'
+          android.useAndroidX=true
+          android.enableJetifier=true
+          EOF
+          cat > app/build.gradle <<'EOF'
+          plugins { id "com.android.application" }
+          android {
+            namespace "com.example.market"
+            compileSdk 34
+            defaultConfig {
+              applicationId "com.example.market"
+              minSdk 24
+              targetSdk 34
+              versionCode 1
+              versionName "1.0"
+            }
+            buildTypes { release { minifyEnabled false } }
+          }
+          EOF
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <application android:label="Market Analyzer" android:exported="true">
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/example/market/MainActivity.java <<'EOF'
+          package com.example.market;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.widget.TextView;
+
+          public class MainActivity extends Activity {
+            @Override protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              TextView tv = new TextView(this);
+              tv.setText("Market Analyzer (starter)\\nNext: connect Binance/OKX data + indicators.");
+              tv.setTextSize(18);
+              setContentView(tv);
+            }
+          }
+          EOF
+          cat > app/src/main/res/values/strings.xml <<'EOF'
+          <resources><string name="app_name">Market Analyzer</string></resources>
+          EOF
+          # Gradle wrapper
+          gradle_version=8.2
+          curl -sLo gradle.zip https://services.gradle.org/distributions/gradle-${gradle_version}-bin.zip
+          unzip -q gradle.zip
+          ./gradle-${gradle_version}/bin/gradle wrapper
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build APK
+        run: |
+          cd app
+          ./gradlew :app:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/app/build/outputs/apk/debug/app-debug.apk
